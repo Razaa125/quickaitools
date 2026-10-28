@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Age Calculator – Calculate Exact Age Free | QuickAITools</title>
+<meta name="description" content="Calculate your exact age in years, months and days with AI fun facts. Free age calculator tool with no login required.">
+<link rel="canonical" href="https://quickaitools.vercel.app/tools/age-calculator.html">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<script src="/assets/js/layout.js"></script>
+
+<div class="tool-wrapper">
+  <div style="margin-bottom:1.5rem">
+    <a href="/index.html" style="color:var(--muted);text-decoration:none;font-size:0.8rem">← Back to Home</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.5rem">
+    <div class="tool-card-icon icon-d" style="width:48px;height:48px;font-size:1.4rem;flex-shrink:0">🎂</div>
+    <div>
+      <h1>Age Calculator</h1>
+      <p class="desc" style="margin-bottom:0">Find your exact age plus AI-powered fun facts about your birthday.</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin:1rem 0 2rem">
+    <span class="pill">Free</span><span class="pill">No Login</span><span class="pill">Instant</span>
+  </div>
+
+  <div class="tool-box">
+    <label>Date of Birth</label>
+    <input type="date" class="field" id="dobInput" style="max-width:280px">
+    <div class="field-row">
+      <button class="btn btn-primary" id="ageBtn" onclick="calcAge()">Calculate Age</button>
+    </div>
+  </div>
+
+  <!-- Result cards -->
+  <div id="ageResultSection" style="display:none">
+    <div class="age-cards" style="margin-bottom:1rem">
+      <div class="age-card"><strong id="yr">0</strong><span>Years</span></div>
+      <div class="age-card m"><strong id="mo">0</strong><span>Months</span></div>
+      <div class="age-card d"><strong id="dy">0</strong><span>Days</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.6rem;margin-bottom:1.5rem">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.9rem;text-align:center">
+        <strong id="totalDays" style="font-size:1.1rem;font-weight:800;color:var(--accent2)">0</strong>
+        <p style="font-size:0.7rem;color:var(--muted);margin-top:2px">Total Days</p>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.9rem;text-align:center">
+        <strong id="totalHours" style="font-size:1.1rem;font-weight:800;color:var(--accent2)">0</strong>
+        <p style="font-size:0.7rem;color:var(--muted);margin-top:2px">Total Hours</p>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.9rem;text-align:center">
+        <strong id="nextBday" style="font-size:1.1rem;font-weight:800;color:var(--accent2)">0</strong>
+        <p style="font-size:0.7rem;color:var(--muted);margin-top:2px">Days to Birthday</p>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0.9rem;text-align:center">
+        <strong id="dayOfWeek" style="font-size:0.9rem;font-weight:800;color:var(--accent2)">-</strong>
+        <p style="font-size:0.7rem;color:var(--muted);margin-top:2px">Born on</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tool-box">
+    <label>AI Fun Facts About Your Birthday</label>
+    <div class="status" id="ageStatus" style="margin-bottom:0.75rem;display:none">
+      <span class="dot running" id="ageDot"></span>
+      <span id="ageMsg">Getting fun facts…</span>
+    </div>
+    <div class="output-area placeholder" id="ageOut">Enter your date of birth and click Calculate Age to see results and AI fun facts…</div>
+  </div>
+</div>
+
+<script src="/assets/js/main.js"></script>
+<script>
+const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
+document.getElementById('dobInput').max = new Date().toISOString().split('T')[0];
+
+async function calcAge() {
+  const dob = document.getElementById('dobInput').value;
+  if (!dob) { showToast('Please select your date of birth', '#ef4444'); return; }
+
+  const birth = new Date(dob), now = new Date();
+  if (birth >= now) { showToast('Date of birth must be in the past', '#ef4444'); return; }
+
+  // Calculate age
+  let yr = now.getFullYear() - birth.getFullYear();
+  let mo = now.getMonth() - birth.getMonth();
+  let dy = now.getDate() - birth.getDate();
+  if (dy < 0) { mo--; dy += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+  if (mo < 0) { yr--; mo += 12; }
+
+  const totalDays = Math.floor((now - birth) / 86400000);
+  const totalHours = totalDays * 24;
+
+  // Next birthday
+  let nextBday = new Date(now.getFullYear(), birth.getMonth(), birth.getDate());
+  if (nextBday <= now) nextBday.setFullYear(now.getFullYear() + 1);
+  const daysToNext = Math.ceil((nextBday - now) / 86400000);
+
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const dayBorn = days[birth.getDay()];
+
+  document.getElementById('yr').textContent = yr;
+  document.getElementById('mo').textContent = mo;
+  document.getElementById('dy').textContent = dy;
+  document.getElementById('totalDays').textContent = totalDays.toLocaleString();
+  document.getElementById('totalHours').textContent = (totalHours).toLocaleString();
+  document.getElementById('nextBday').textContent = daysToNext;
+  document.getElementById('dayOfWeek').textContent = dayBorn;
+  document.getElementById('ageResultSection').style.display = 'block';
+
+  // AI facts
+  const btn = document.getElementById('ageBtn');
+  btn.disabled = true;
+  document.getElementById('ageStatus').style.display = 'flex';
+  setDot('ageDot', 'running');
+  const out = document.getElementById('ageOut');
+  out.className = 'output-area placeholder';
+  out.textContent = 'Fetching AI fun facts for your birthday…';
+
+  try {
+    const birthDate = birth.toLocaleDateString('en', {month:'long', day:'numeric'});
+    const birthYear = birth.getFullYear();
+    const res = await fetch(CLAUDE_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 500,
+        messages: [{ role: 'user', content: `A person born on ${dob} is now ${yr} years, ${mo} months and ${dy} days old. They have lived ${totalDays.toLocaleString()} days. Share 3 interesting and positive fun facts: 1) something notable that happened in ${birthYear}, 2) a famous person also born on ${birthDate}, 3) one fun milestone fact about being ${yr} years old. Keep it friendly and brief.` }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.map(c => c.text || '').join('').trim();
+    out.className = 'output-area'; out.textContent = text;
+    setDot('ageDot', 'done');
+    document.getElementById('ageMsg').textContent = 'Done!';
+  } catch(e) {
+    out.className = 'output-area';
+    out.textContent = `You are ${yr} years, ${mo} months and ${dy} days old.\nTotal days lived: ${totalDays.toLocaleString()}\nTotal hours: ${totalHours.toLocaleString()}\nYou were born on a ${dayBorn}.`;
+    setDot('ageDot', 'done');
+  }
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>

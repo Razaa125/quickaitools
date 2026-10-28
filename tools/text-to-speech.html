@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Text to Speech Urdu – Free TTS Online | QuickAITools</title>
+<meta name="description" content="Convert Urdu or Roman Urdu text to natural speech free online. No signup required. Works on Chrome, Firefox and mobile browsers.">
+<link rel="canonical" href="https://quickaitools.vercel.app/tools/text-to-speech.html">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<script src="/assets/js/layout.js"></script>
+
+<div class="tool-wrapper">
+  <div style="margin-bottom:1.5rem">
+    <a href="/index.html" style="color:var(--muted);text-decoration:none;font-size:0.8rem">← Back to Home</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.5rem">
+    <div class="tool-card-icon icon-f" style="width:48px;height:48px;font-size:1.4rem;flex-shrink:0">🔊</div>
+    <div>
+      <h1>Text to Speech – Urdu</h1>
+      <p class="desc" style="margin-bottom:0">Type Urdu or Roman Urdu and hear it spoken aloud. Works in browser.</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin:1rem 0 2rem">
+    <span class="pill">Free</span><span class="pill">No Login</span><span class="pill">Browser TTS</span><span class="pill">Urdu Support</span>
+  </div>
+
+  <div class="tool-box">
+    <label>Enter Text</label>
+    <textarea class="field" id="ttsText" placeholder="یہاں اردو متن لکھیں…&#10;Ya Roman Urdu mein bhi type kar sakte hain…&#10;&#10;Example: Assalam o Alaikum. Mera naam QuickAITools hai." rows="6"></textarea>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-top:1rem">
+      <div>
+        <label>Voice</label>
+        <select class="field" id="ttsVoice"><option value="">Loading…</option></select>
+      </div>
+      <div>
+        <label>Speed</label>
+        <select class="field" id="ttsRate">
+          <option value="0.6">Very Slow</option>
+          <option value="0.8">Slow</option>
+          <option value="1" selected>Normal</option>
+          <option value="1.2">Fast</option>
+          <option value="1.5">Very Fast</option>
+        </select>
+      </div>
+      <div>
+        <label>Pitch</label>
+        <select class="field" id="ttsPitch">
+          <option value="0.8">Low</option>
+          <option value="1" selected>Normal</option>
+          <option value="1.2">High</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-row" style="margin-top:1rem;gap:0.6rem">
+      <button class="btn btn-primary" onclick="speakText()">▶ Speak Now</button>
+      <button class="btn btn-outline" onclick="pauseSpeak()">⏸ Pause</button>
+      <button class="btn btn-outline" style="border-color:#ef4444;color:#ef4444" onclick="stopSpeak()">⏹ Stop</button>
+      <div class="status" id="ttsStatus" style="display:none">
+        <span class="dot running" id="ttsDot"></span>
+        <span id="ttsMsg">Speaking…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Browser support note -->
+  <div style="background:rgba(37,99,235,0.07);border:1px solid rgba(37,99,235,0.2);border-radius:var(--radius-sm);padding:1rem;margin-bottom:1.5rem">
+    <p style="font-size:0.8rem;color:var(--muted)">
+      💡 <strong style="color:var(--text)">Best Browser:</strong> Google Chrome gives the best Urdu voice quality. 
+      For Urdu script, your device must have an Urdu voice installed. On Windows, go to Settings → Time &amp; Language → Speech → Add voices → Urdu.
+    </p>
+  </div>
+
+  <!-- Word counter -->
+  <div class="tool-box">
+    <label>Text Stats</label>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;margin-top:0.5rem">
+      <div style="background:var(--surface2);border-radius:8px;padding:0.8rem;text-align:center">
+        <strong id="wordCount" style="font-size:1.2rem;color:var(--accent2)">0</strong>
+        <p style="font-size:0.7rem;color:var(--muted);margin-top:2px">Words</p>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:0.8rem;text-align:center">
+        <strong id="charCount" style="font-size:1.2rem;color:var(--accent2)">0</strong>
+        <p style="font-size:0.7rem;color:var(--muted);margin-top:2px">Characters</p>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:0.8rem;text-align:center">
+        <strong id="readTime" style="font-size:1.2rem;color:var(--accent2)">0s</strong>
+        <p style="font-size:0.7rem;color:var(--muted);margin-top:2px">Est. Duration</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/main.js"></script>
+<script>
+let voices = [];
+let currentRate = 1;
+
+function loadVoices() {
+  voices = window.speechSynthesis.getVoices();
+  const sel = document.getElementById('ttsVoice');
+  sel.innerHTML = '';
+  const urdu = voices.filter(v => v.lang.startsWith('ur'));
+  const others = voices.filter(v => !v.lang.startsWith('ur'));
+  const all = [...urdu, ...others];
+  if (all.length === 0) { sel.innerHTML = '<option value="-1">Default System Voice</option>'; return; }
+  all.forEach((v, i) => {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = (v.lang.startsWith('ur') ? '🇵🇰 ' : '') + v.name + ' (' + v.lang + ')';
+    if (urdu.length > 0 && i === 0) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+window.speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices(); setTimeout(loadVoices, 500);
+
+// Text stats
+document.getElementById('ttsText').addEventListener('input', function() {
+  const t = this.value.trim();
+  const words = t ? t.split(/\s+/).length : 0;
+  const chars = t.length;
+  const rate = parseFloat(document.getElementById('ttsRate').value) || 1;
+  const secs = Math.round((words / 150) * 60 / rate);
+  document.getElementById('wordCount').textContent = words;
+  document.getElementById('charCount').textContent = chars;
+  document.getElementById('readTime').textContent = secs > 60 ? Math.round(secs/60) + 'm' : secs + 's';
+});
+
+function speakText() {
+  const text = document.getElementById('ttsText').value.trim();
+  if (!text) { showToast('Please enter some text first', '#ef4444'); return; }
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  const voiceIdx = parseInt(document.getElementById('ttsVoice').value);
+  if (!isNaN(voiceIdx) && voices[voiceIdx]) utt.voice = voices[voiceIdx];
+  utt.rate = parseFloat(document.getElementById('ttsRate').value);
+  utt.pitch = parseFloat(document.getElementById('ttsPitch').value);
+  utt.lang = 'ur-PK';
+  utt.onstart = () => { document.getElementById('ttsStatus').style.display = 'flex'; setDot('ttsDot', 'running'); document.getElementById('ttsMsg').textContent = 'Speaking…'; };
+  utt.onend = () => { setDot('ttsDot', 'done'); document.getElementById('ttsMsg').textContent = 'Done!'; };
+  utt.onerror = (e) => { setDot('ttsDot', 'error'); document.getElementById('ttsMsg').textContent = 'Error – try Chrome'; showToast('TTS error. Please use Google Chrome.', '#ef4444'); };
+  window.speechSynthesis.speak(utt);
+}
+function pauseSpeak() {
+  if (window.speechSynthesis.paused) { window.speechSynthesis.resume(); document.getElementById('ttsMsg').textContent = 'Speaking…'; }
+  else { window.speechSynthesis.pause(); document.getElementById('ttsMsg').textContent = 'Paused'; }
+}
+function stopSpeak() {
+  window.speechSynthesis.cancel();
+  setDot('ttsDot', ''); document.getElementById('ttsStatus').style.display = 'none';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Hashtag Generator – Free Instagram TikTok Hashtags | QuickAITools</title>
+<meta name="description" content="Generate trending hashtags for Instagram, TikTok, Twitter, LinkedIn and YouTube free with AI. No signup needed.">
+<link rel="canonical" href="https://quickaitools.vercel.app/tools/hashtag-generator.html">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<script src="/assets/js/layout.js"></script>
+
+<div class="tool-wrapper">
+  <div style="margin-bottom:1.5rem">
+    <a href="/index.html" style="color:var(--muted);text-decoration:none;font-size:0.8rem">← Back to Home</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.5rem">
+    <div class="tool-card-icon icon-e" style="width:48px;height:48px;font-size:1.4rem;flex-shrink:0">#️⃣</div>
+    <div>
+      <h1>AI Hashtag Generator</h1>
+      <p class="desc" style="margin-bottom:0">Generate trending, relevant hashtags for any platform instantly.</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin:1rem 0 2rem">
+    <span class="pill">Free</span><span class="pill">No Login</span><span class="pill">AI Powered</span>
+  </div>
+
+  <div class="tool-box">
+    <label>Topic or Caption</label>
+    <textarea class="field" id="topicInput" placeholder="Enter your topic, caption or keywords…&#10;Example: photography, sunset, Lahore, food blogger" rows="3"></textarea>
+    <div class="field-row" style="margin-top:1rem">
+      <select class="field" id="platform" style="flex:1;min-width:130px">
+        <option>Instagram</option>
+        <option>TikTok</option>
+        <option>Twitter / X</option>
+        <option>LinkedIn</option>
+        <option>YouTube</option>
+        <option>Facebook</option>
+      </select>
+      <select class="field" id="hashCount" style="min-width:110px">
+        <option value="10">10 Hashtags</option>
+        <option value="20" selected>20 Hashtags</option>
+        <option value="30">30 Hashtags</option>
+      </select>
+      <select class="field" id="hashNiche" style="min-width:110px">
+        <option value="mix">Mix (Popular + Niche)</option>
+        <option value="popular">Trending Only</option>
+        <option value="niche">Niche Only</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <button class="btn btn-primary" id="hashBtn" onclick="runHashtags()">Generate Hashtags</button>
+    </div>
+  </div>
+
+  <div class="tool-box">
+    <label>Generated Hashtags</label>
+    <div id="hashStatus" class="status" style="margin-bottom:0.75rem;display:none">
+      <span class="dot running" id="hashDot"></span>
+      <span id="hashMsg">Generating…</span>
+    </div>
+    <div class="output-area placeholder" id="hashOut">Your hashtags will appear here…</div>
+    <div class="result-actions" id="hashActions" style="display:none">
+      <button class="copy-btn" onclick="copyText('hashOut')">📋 Copy All Hashtags</button>
+      <button class="copy-btn" onclick="clearHash()">🔄 Clear</button>
+    </div>
+  </div>
+
+  <!-- Platform tips -->
+  <div class="tool-box">
+    <label>Platform Tips</label>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.75rem;margin-top:0.5rem">
+      <div style="padding:0.8rem;background:var(--surface2);border-radius:8px">
+        <p style="font-size:0.78rem;font-weight:700;margin-bottom:3px">📸 Instagram</p>
+        <p style="font-size:0.73rem;color:var(--muted)">Use 20–30 hashtags. Mix popular and niche.</p>
+      </div>
+      <div style="padding:0.8rem;background:var(--surface2);border-radius:8px">
+        <p style="font-size:0.78rem;font-weight:700;margin-bottom:3px">🎵 TikTok</p>
+        <p style="font-size:0.73rem;color:var(--muted)">Use 3–5 focused hashtags. Less is more.</p>
+      </div>
+      <div style="padding:0.8rem;background:var(--surface2);border-radius:8px">
+        <p style="font-size:0.78rem;font-weight:700;margin-bottom:3px">🐦 Twitter/X</p>
+        <p style="font-size:0.73rem;color:var(--muted)">Use 1–2 trending hashtags only.</p>
+      </div>
+      <div style="padding:0.8rem;background:var(--surface2);border-radius:8px">
+        <p style="font-size:0.78rem;font-weight:700;margin-bottom:3px">💼 LinkedIn</p>
+        <p style="font-size:0.73rem;color:var(--muted)">Use 3–5 professional, industry-specific tags.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/main.js"></script>
+<script>
+const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
+
+async function callClaude(prompt) {
+  const res = await fetch(CLAUDE_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!res.ok) throw new Error('API error ' + res.status);
+  const data = await res.json();
+  return data.content.map(c => c.text || '').join('').trim();
+}
+
+async function runHashtags() {
+  const topic = document.getElementById('topicInput').value.trim();
+  const platform = document.getElementById('platform').value;
+  const count = document.getElementById('hashCount').value;
+  const niche = document.getElementById('hashNiche').value;
+  if (!topic) { showToast('Please enter a topic first', '#ef4444'); return; }
+
+  const btn = document.getElementById('hashBtn');
+  const status = document.getElementById('hashStatus');
+  const out = document.getElementById('hashOut');
+  btn.disabled = true;
+  status.style.display = 'flex'; setDot('hashDot', 'running');
+  document.getElementById('hashMsg').textContent = 'Generating hashtags…';
+  out.className = 'output-area placeholder'; out.textContent = 'AI is generating hashtags…';
+  document.getElementById('hashActions').style.display = 'none';
+
+  const nicheMap = {
+    mix: 'a mix of popular (high volume) and niche (targeted) hashtags',
+    popular: 'only trending and highly popular hashtags',
+    niche: 'only niche and targeted hashtags for a specific audience'
+  };
+
+  try {
+    const result = await callClaude(
+      `Generate exactly ${count} ${nicheMap[niche]} for ${platform} about: "${topic}". Return ONLY the hashtags separated by spaces, each starting with #. No explanations, no numbering, no categories — just hashtags in one block.`
+    );
+    out.className = 'output-area'; out.textContent = result;
+    document.getElementById('hashActions').style.display = 'flex';
+    setDot('hashDot', 'done');
+    document.getElementById('hashMsg').textContent = `${count} hashtags ready!`;
+  } catch (e) {
+    out.className = 'output-area'; out.textContent = 'Error: ' + e.message;
+    setDot('hashDot', 'error');
+    document.getElementById('hashMsg').textContent = 'Failed';
+    showToast('Error occurred. Please try again.', '#ef4444');
+  }
+  btn.disabled = false;
+}
+
+function clearHash() {
+  document.getElementById('topicInput').value = '';
+  document.getElementById('hashOut').className = 'output-area placeholder';
+  document.getElementById('hashOut').textContent = 'Your hashtags will appear here…';
+  document.getElementById('hashActions').style.display = 'none';
+  document.getElementById('hashStatus').style.display = 'none';
+}
+</script>
+</body>
+</html>

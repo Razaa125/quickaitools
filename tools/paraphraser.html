@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Paraphraser – Rewrite Text Free | QuickAITools</title>
+<meta name="description" content="Free AI paraphraser tool. Rewrite any text in standard, formal, simple or creative style instantly. No login required.">
+<link rel="canonical" href="https://quickaitools.vercel.app/tools/paraphraser.html">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<script src="/assets/js/layout.js"></script>
+
+<div class="tool-wrapper">
+  <div style="margin-bottom:1.5rem">
+    <a href="/index.html" style="color:var(--muted);text-decoration:none;font-size:0.8rem">← Back to Home</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.5rem">
+    <div class="tool-card-icon icon-c" style="width:48px;height:48px;font-size:1.4rem;flex-shrink:0">✍️</div>
+    <div>
+      <h1>AI Paraphraser</h1>
+      <p class="desc" style="margin-bottom:0">Rewrite any text instantly with AI. Choose your style below.</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin:1rem 0 2rem">
+    <span class="pill">Free</span><span class="pill">No Login</span><span class="pill">AI Powered</span>
+  </div>
+
+  <div class="tool-box">
+    <label>Your Text</label>
+    <textarea class="field" id="inputText" placeholder="Paste your text here to paraphrase… (minimum 10 characters)" rows="6"></textarea>
+    <div class="field-row">
+      <select class="field" id="paraMode" style="flex:1;min-width:130px">
+        <option value="standard">Standard</option>
+        <option value="formal">Formal</option>
+        <option value="simple">Simple & Easy</option>
+        <option value="creative">Creative</option>
+        <option value="fluent">Fluent English</option>
+      </select>
+      <button class="btn btn-primary" id="paraBtn" onclick="runParaphrase()">Paraphrase Text</button>
+    </div>
+  </div>
+
+  <div class="tool-box">
+    <label>Paraphrased Result</label>
+    <div id="status" class="status" style="margin-bottom:0.75rem;display:none">
+      <span class="dot running" id="dot"></span>
+      <span id="statusMsg">Processing…</span>
+    </div>
+    <div class="output-area placeholder" id="paraOut">Your paraphrased text will appear here…</div>
+    <div class="result-actions" id="paraActions" style="display:none">
+      <button class="copy-btn" onclick="copyText('paraOut')">📋 Copy Text</button>
+      <button class="copy-btn" onclick="clearAll()">🔄 Clear</button>
+    </div>
+  </div>
+
+  <!-- How to use -->
+  <div class="tool-box" style="margin-top:2rem">
+    <label>How to Use</label>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.75rem;margin-top:0.5rem">
+      <div style="text-align:center;padding:1rem;background:var(--surface2);border-radius:8px">
+        <div style="font-size:1.5rem;margin-bottom:0.4rem">📝</div>
+        <p style="font-size:0.78rem;color:var(--muted)">Paste your text in the input box</p>
+      </div>
+      <div style="text-align:center;padding:1rem;background:var(--surface2);border-radius:8px">
+        <div style="font-size:1.5rem;margin-bottom:0.4rem">🎨</div>
+        <p style="font-size:0.78rem;color:var(--muted)">Choose your paraphrase style</p>
+      </div>
+      <div style="text-align:center;padding:1rem;background:var(--surface2);border-radius:8px">
+        <div style="font-size:1.5rem;margin-bottom:0.4rem">⚡</div>
+        <p style="font-size:0.78rem;color:var(--muted)">Click Paraphrase and get result</p>
+      </div>
+      <div style="text-align:center;padding:1rem;background:var(--surface2);border-radius:8px">
+        <div style="font-size:1.5rem;margin-bottom:0.4rem">📋</div>
+        <p style="font-size:0.78rem;color:var(--muted)">Copy and use anywhere you want</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/main.js"></script>
+<script>
+const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
+
+async function callClaude(prompt) {
+  const res = await fetch(CLAUDE_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!res.ok) throw new Error('API error ' + res.status);
+  const data = await res.json();
+  return data.content.map(c => c.text || '').join('').trim();
+}
+
+async function runParaphrase() {
+  const text = document.getElementById('inputText').value.trim();
+  const mode = document.getElementById('paraMode').value;
+  if (!text || text.length < 10) { showToast('Please enter at least 10 characters', '#ef4444'); return; }
+
+  const btn = document.getElementById('paraBtn');
+  const status = document.getElementById('status');
+  const out = document.getElementById('paraOut');
+  btn.disabled = true;
+  status.style.display = 'flex'; setDot('dot', 'running');
+  document.getElementById('statusMsg').textContent = 'AI is paraphrasing…';
+  out.className = 'output-area placeholder'; out.textContent = 'Processing your text…';
+  document.getElementById('paraActions').style.display = 'none';
+
+  try {
+    const modeMap = {
+      standard: 'standard natural',
+      formal: 'professional and formal',
+      simple: 'simple and easy to understand',
+      creative: 'creative and engaging',
+      fluent: 'fluent and polished English'
+    };
+    const result = await callClaude(
+      `Paraphrase the following text in ${modeMap[mode]} style. Return ONLY the paraphrased text with no introduction, no explanation, and no quotation marks:\n\n${text}`
+    );
+    out.className = 'output-area'; out.textContent = result;
+    document.getElementById('paraActions').style.display = 'flex';
+    setDot('dot', 'done');
+    document.getElementById('statusMsg').textContent = 'Done!';
+  } catch (e) {
+    out.className = 'output-area'; out.textContent = 'Error: ' + e.message;
+    setDot('dot', 'error');
+    document.getElementById('statusMsg').textContent = 'Failed';
+    showToast('Error occurred. Please try again.', '#ef4444');
+  }
+  btn.disabled = false;
+}
+
+function clearAll() {
+  document.getElementById('inputText').value = '';
+  document.getElementById('paraOut').className = 'output-area placeholder';
+  document.getElementById('paraOut').textContent = 'Your paraphrased text will appear here…';
+  document.getElementById('paraActions').style.display = 'none';
+  document.getElementById('status').style.display = 'none';
+}
+</script>
+</body>
+</html>

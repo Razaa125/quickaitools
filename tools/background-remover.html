@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Background Remover – Remove Image BG Free | QuickAITools</title>
+<meta name="description" content="Remove image background free online with AI. Get instant analysis and step-by-step guide. No signup, no watermark.">
+<link rel="canonical" href="https://quickaitools.vercel.app/tools/background-remover.html">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<script src="/assets/js/layout.js"></script>
+
+<div class="tool-wrapper">
+  <div style="margin-bottom:1.5rem">
+    <a href="/index.html" style="color:var(--muted);text-decoration:none;font-size:0.8rem">← Back to Home</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.5rem">
+    <div class="tool-card-icon icon-a" style="width:48px;height:48px;font-size:1.4rem;flex-shrink:0">🖼️</div>
+    <div>
+      <h1>Background Remover</h1>
+      <p class="desc" style="margin-bottom:0">Upload an image, get AI analysis and the best free tools to remove its background.</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin:1rem 0 2rem">
+    <span class="pill">Free</span><span class="pill">No Login</span><span class="pill">AI Powered</span>
+  </div>
+
+  <div class="tool-box">
+    <label>Upload Image</label>
+    <div class="upload-zone" id="dropZone" onclick="document.getElementById('bgFile').click()"
+      ondragover="event.preventDefault();this.style.borderColor='var(--accent2)'"
+      ondragleave="this.style.borderColor=''"
+      ondrop="handleDrop(event)">
+      <span class="uz-icon">📷</span>
+      <p><strong style="color:var(--text)">Click to upload</strong> or drag &amp; drop</p>
+      <p>PNG, JPG, WEBP — max 10 MB</p>
+    </div>
+    <input type="file" id="bgFile" accept="image/png,image/jpeg,image/webp" onchange="previewFile(this)">
+    <img id="bgPreview" class="preview-img" alt="Preview">
+    <div class="field-row" style="margin-top:1rem">
+      <button class="btn btn-primary" id="bgBtn" onclick="runBG()" disabled>Analyze with AI</button>
+    </div>
+  </div>
+
+  <div class="tool-box">
+    <label>AI Analysis &amp; Removal Guide</label>
+    <div class="status" id="bgStatus" style="margin-bottom:0.75rem;display:none">
+      <span class="dot running" id="bgDot"></span>
+      <span id="bgMsg">Analyzing image…</span>
+    </div>
+    <div class="output-area placeholder" id="bgOut">Upload an image and click "Analyze with AI" to get a step-by-step background removal guide…</div>
+    <div class="result-actions" id="bgActions" style="display:none">
+      <button class="copy-btn" onclick="copyText('bgOut')">📋 Copy Guide</button>
+    </div>
+  </div>
+
+  <!-- Quick links to free BG removers -->
+  <div class="tool-box">
+    <label>Top Free Background Removal Tools</label>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.6rem;margin-top:0.5rem">
+      <a href="https://www.remove.bg" target="_blank" rel="noopener noreferrer" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.8rem;text-decoration:none;color:var(--text);font-size:0.8rem;font-weight:600;display:flex;align-items:center;gap:6px;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor=''">🔗 Remove.bg</a>
+      <a href="https://www.canva.com/features/background-remover/" target="_blank" rel="noopener noreferrer" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.8rem;text-decoration:none;color:var(--text);font-size:0.8rem;font-weight:600;display:flex;align-items:center;gap:6px;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor=''">🎨 Canva BG Remover</a>
+      <a href="https://photoscissors.com" target="_blank" rel="noopener noreferrer" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.8rem;text-decoration:none;color:var(--text);font-size:0.8rem;font-weight:600;display:flex;align-items:center;gap:6px;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor=''">✂️ PhotoScissors</a>
+      <a href="https://www.adobe.com/express/feature/image/remove-background" target="_blank" rel="noopener noreferrer" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.8rem;text-decoration:none;color:var(--text);font-size:0.8rem;font-weight:600;display:flex;align-items:center;gap:6px;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor=''">🅰️ Adobe Express</a>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/main.js"></script>
+<script>
+const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').style.borderColor = '';
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) {
+    const dt = new DataTransfer(); dt.items.add(f);
+    document.getElementById('bgFile').files = dt.files;
+    previewFile(document.getElementById('bgFile'));
+  }
+}
+function previewFile(inp) {
+  if (!inp.files[0]) return;
+  const img = document.getElementById('bgPreview');
+  img.src = URL.createObjectURL(inp.files[0]);
+  img.style.display = 'block';
+  document.getElementById('bgBtn').disabled = false;
+}
+
+async function runBG() {
+  const file = document.getElementById('bgFile').files[0];
+  if (!file) return;
+  const btn = document.getElementById('bgBtn');
+  btn.disabled = true;
+  document.getElementById('bgStatus').style.display = 'flex';
+  setDot('bgDot', 'running');
+  document.getElementById('bgMsg').textContent = 'Analyzing image with AI…';
+  const out = document.getElementById('bgOut');
+  out.className = 'output-area placeholder'; out.textContent = 'Processing…';
+  document.getElementById('bgActions').style.display = 'none';
+
+  try {
+    const b64 = await fileToBase64(file);
+    const res = await fetch(CLAUDE_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 600,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: file.type || 'image/jpeg', data: b64 } },
+          { type: 'text', text: 'Analyze this image and provide: 1) What is the main subject/foreground, 2) What does the background look like and how complex it is to remove, 3) The 3 best free tools to remove this specific background (from: remove.bg, Canva, Adobe Express, PhotoScissors) with a brief reason why each fits this image, 4) Step-by-step instructions for the easiest option. Be practical and specific.' }
+        ]}]
+      })
+    });
+    if (!res.ok) throw new Error('API error ' + res.status);
+    const data = await res.json();
+    const text = data.content.map(c => c.text || '').join('').trim();
+    out.className = 'output-area'; out.textContent = text;
+    document.getElementById('bgActions').style.display = 'flex';
+    setDot('bgDot', 'done'); document.getElementById('bgMsg').textContent = 'Analysis complete!';
+  } catch(e) {
+    out.className = 'output-area'; out.textContent = 'Error: ' + e.message + '\n\nPlease try again or use remove.bg directly.';
+    setDot('bgDot', 'error'); document.getElementById('bgMsg').textContent = 'Failed';
+    showToast('Error occurred. Please try again.', '#ef4444');
+  }
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>

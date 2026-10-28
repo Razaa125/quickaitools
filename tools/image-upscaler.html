@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Image Upscaler – Enhance Image Quality Free | QuickAITools</title>
+<meta name="description" content="Upscale and enhance image resolution with AI analysis. Get expert tips and best free tools to upscale your images 2x or 4x. No login needed.">
+<link rel="canonical" href="https://quickaitools.vercel.app/tools/image-upscaler.html">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<script src="/assets/js/layout.js"></script>
+
+<div class="tool-wrapper">
+  <div style="margin-bottom:1.5rem">
+    <a href="/index.html" style="color:var(--muted);text-decoration:none;font-size:0.8rem">← Back to Home</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.5rem">
+    <div class="tool-card-icon icon-b" style="width:48px;height:48px;font-size:1.4rem;flex-shrink:0">🔍</div>
+    <div>
+      <h1>Image Upscaler</h1>
+      <p class="desc" style="margin-bottom:0">Upload your image and get an AI-powered quality analysis with the best upscaling recommendations.</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin:1rem 0 2rem">
+    <span class="pill">Free</span><span class="pill">No Login</span><span class="pill">AI Powered</span>
+  </div>
+
+  <div class="tool-box">
+    <label>Upload Image to Enhance</label>
+    <div class="upload-zone" id="upDropZone" onclick="document.getElementById('upFile').click()"
+      ondragover="event.preventDefault();this.style.borderColor='var(--accent2)'"
+      ondragleave="this.style.borderColor=''"
+      ondrop="handleUpDrop(event)">
+      <span class="uz-icon">📸</span>
+      <p><strong style="color:var(--text)">Click to upload</strong> or drag &amp; drop</p>
+      <p>PNG, JPG, WEBP — max 10 MB</p>
+    </div>
+    <input type="file" id="upFile" accept="image/png,image/jpeg,image/webp" onchange="previewUpFile(this)">
+    <img id="upPreview" class="preview-img" alt="Preview">
+    <div class="field-row" style="margin-top:1rem">
+      <select class="field" id="upFactor" style="max-width:140px">
+        <option value="2">2x Upscale</option>
+        <option value="4">4x Upscale</option>
+        <option value="8">8x Upscale</option>
+      </select>
+      <select class="field" id="upType" style="max-width:160px">
+        <option value="photo">Photo / Portrait</option>
+        <option value="anime">Anime / Illustration</option>
+        <option value="document">Document / Text</option>
+        <option value="logo">Logo / Vector</option>
+      </select>
+      <button class="btn btn-primary" id="upBtn" onclick="runUpscale()" disabled>Analyze &amp; Guide</button>
+    </div>
+  </div>
+
+  <div class="tool-box">
+    <label>AI Enhancement Guide</label>
+    <div class="status" id="upStatus" style="margin-bottom:0.75rem;display:none">
+      <span class="dot running" id="upDot"></span>
+      <span id="upMsg">Analyzing…</span>
+    </div>
+    <div class="output-area placeholder" id="upOut">Upload an image and click "Analyze &amp; Guide" to get AI recommendations for the best upscaling result…</div>
+    <div class="result-actions" id="upActions" style="display:none">
+      <button class="copy-btn" onclick="copyText('upOut')">📋 Copy Guide</button>
+    </div>
+  </div>
+
+  <!-- Free upscaling tools -->
+  <div class="tool-box">
+    <label>Top Free Image Upscaling Tools</label>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.6rem;margin-top:0.5rem">
+      <a href="https://www.iloveimg.com/upscale-image" target="_blank" rel="noopener noreferrer" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.8rem;text-decoration:none;color:var(--text);font-size:0.8rem;font-weight:600;display:flex;align-items:center;gap:6px" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor=''">🔗 iLoveIMG</a>
+      <a href="https://www.upscale.media" target="_blank" rel="noopener noreferrer" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.8rem;text-decoration:none;color:var(--text);font-size:0.8rem;font-weight:600;display:flex;align-items:center;gap:6px" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor=''">📈 Upscale.media</a>
+      <a href="https://letsenhance.io" target="_blank" rel="noopener noreferrer" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.8rem;text-decoration:none;color:var(--text);font-size:0.8rem;font-weight:600;display:flex;align-items:center;gap:6px" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor=''">✨ Let's Enhance</a>
+      <a href="https://www.waifu2x.net" target="_blank" rel="noopener noreferrer" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.8rem;text-decoration:none;color:var(--text);font-size:0.8rem;font-weight:600;display:flex;align-items:center;gap:6px" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor=''">🎨 Waifu2x</a>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/main.js"></script>
+<script>
+const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
+
+function handleUpDrop(e) {
+  e.preventDefault();
+  document.getElementById('upDropZone').style.borderColor = '';
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) {
+    const dt = new DataTransfer(); dt.items.add(f);
+    document.getElementById('upFile').files = dt.files;
+    previewUpFile(document.getElementById('upFile'));
+  }
+}
+function previewUpFile(inp) {
+  if (!inp.files[0]) return;
+  const img = document.getElementById('upPreview');
+  img.src = URL.createObjectURL(inp.files[0]);
+  img.style.display = 'block';
+  document.getElementById('upBtn').disabled = false;
+}
+
+async function runUpscale() {
+  const file = document.getElementById('upFile').files[0];
+  const factor = document.getElementById('upFactor').value;
+  const type = document.getElementById('upType').value;
+  if (!file) return;
+  const btn = document.getElementById('upBtn');
+  btn.disabled = true;
+  document.getElementById('upStatus').style.display = 'flex';
+  setDot('upDot', 'running');
+  document.getElementById('upMsg').textContent = 'Analyzing image quality…';
+  const out = document.getElementById('upOut');
+  out.className = 'output-area placeholder'; out.textContent = 'AI is analyzing your image…';
+  document.getElementById('upActions').style.display = 'none';
+
+  try {
+    const b64 = await fileToBase64(file);
+    const res = await fetch(CLAUDE_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 600,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: file.type || 'image/jpeg', data: b64 } },
+          { type: 'text', text: `Analyze this ${type} image for ${factor}x upscaling. Provide: 1) Current quality assessment (resolution estimate, noise level, sharpness), 2) What would improve at ${factor}x, 3) Best 2-3 free tools for this specific ${type} image type with reasons, 4) Recommended settings (noise reduction level, sharpness) for best results. Be specific and practical.` }
+        ]}]
+      })
+    });
+    if (!res.ok) throw new Error('API error ' + res.status);
+    const data = await res.json();
+    const text = data.content.map(c => c.text || '').join('').trim();
+    out.className = 'output-area'; out.textContent = text;
+    document.getElementById('upActions').style.display = 'flex';
+    setDot('upDot', 'done'); document.getElementById('upMsg').textContent = 'Analysis complete!';
+  } catch(e) {
+    out.className = 'output-area'; out.textContent = 'Error: ' + e.message;
+    setDot('upDot', 'error'); document.getElementById('upMsg').textContent = 'Failed';
+    showToast('Error occurred. Please try again.', '#ef4444');
+  }
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
